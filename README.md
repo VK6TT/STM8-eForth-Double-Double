@@ -6,6 +6,9 @@ the constraint that the arrays used (Res, D1 and D2) must reside in Shortmem i.e
 the 32 bit doubles and 64 bit result are stored MSB first. That's different from the way STM8 eForth stores and retrieves doubles. Dealt with by the swap in "D1!".
 
 A loop of 10,000 calcualtions, which included loading the data and initialising each time, took about 7.5 seconds in total. That is way faster than I had hoped for and exceeds what I needed in my DDS controller applicaiton. 
+
 Yes, the identification of the Carry is awkward.
+
 No, I don't yet see any obvious ways to make it go faster or use less space.
+
 Looking forward to seeing how you might improve this.
