@@ -66,6 +66,7 @@ NVM
    ;
    
 : D1xD2 \ calcualte Res for loading into DDS
+   Res 8 ERASE 
    32 0 DO
       RL_D1         \ rotate D1 to left
       Carry?   \ was carry set?
