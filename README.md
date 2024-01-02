@@ -7,7 +7,7 @@ the 32 bit doubles and 64 bit result are stored MSB first. That's different from
 
 A loop of 10,000 calcualtions, which included loading the data and initialising each time, took about 7.5 seconds in total. That is way faster than I had hoped for and exceeds what I needed in my DDS controller applicaiton. 
 
-Yes, the identification of the Carry is awkward.
+Identification of the Carry is imporved thanks to the BCCM op code.
 
 No, I don't yet see any obvious ways to make it go faster or use less space.
 
