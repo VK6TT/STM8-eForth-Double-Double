@@ -3,12 +3,14 @@
 
 \ Assumed MSB stored first
 \ M=D1xD2
+\ Change Log
+\ used ]M! to copy op-codes into definition instead of using Jumps and Returns
 NVM
 Variable Res 8 allot \ Res is 16 bytes for double * double
 Variable D1 4 allot \ Double1 - destroyed by routine
 Variable D2 4 allot \ Double2  - preserved
 Variable Carry      \ loaded with carry bit
-
+VAriable Test       \ if you point ]M! to blank memory lets not go on till a crash
 RAM
 \ These words are only required during compiling. Not needed afterwards
 : RCF $98 C, ; IMMEDIATE \ reset carry flag
@@ -20,6 +22,23 @@ RAM
 : ]LDA ( c -- ) $B6 C, C, ] ; IMMEDIATE \ load byte @ c into accum
 : ]ADC ( c -- ) $B9 C, C, ] ; IMMEDIATE \ add byte at c to accumulator
 : ]LDA>M ( c -- ) $B7 C, C, ] ; IMMEDIATE \ save A to memory
+: ]M! ( A -- ) \ copy bytes from A to this definition until $81 ( ret ) 
+   DEPTH 0= ABORT" Empty Stack" 
+   0 TEST !
+   BEGIN
+      DUP
+      C@ DUP 
+      $81 = NOT
+      IF C, 1+ 0 \ fetch the char and save it to HERE
+      ELSE -1
+      THEN
+      1 TEST +! TEST @ 48 = 
+      DUP IF ." byte limit!!" THEN
+      OR \ 4test - no runaways
+   UNTIL
+   2DROP  \ discard A and C
+   ]
+   ; 
 
 NVM
 : RL_D1 ( -- ) \ rotate D1 to left
@@ -52,12 +71,8 @@ NVM
    CLR_A [ Res  1 + ]ADC  [ Res 1 + ]LDA>M
    CLR_A [ Res      ]ADC  [ Res     ]LDA>M
 ;
-: CARRY? ( -- D2 ) \ return carry bit
-   CLR_A 
-   [ $3F C, Carry C, ] \ force carry variable to zero
-   [ Carry ]adc         \ A now holds C flag
-   [ Carry ]LDA>M       \ Save A to Carry
-   Carry C@             \ push Carry onto stack
+: CARRY! ( -- ) \ save carry bit to variable CARRY
+   [ $9011 ,  CARRY C, 0 C, ]
 ;
 : D1! ( DL Dh -- )      \ save Dl Dh
    swap D1 2! ; 
@@ -68,11 +83,11 @@ NVM
 : D1xD2 \ calcualte Res for loading into DDS
    Res 8 ERASE 
    32 0 DO
-      RL_D1         \ rotate D1 to left
-      Carry?   \ was carry set?
-      IF RLM      \ rotate Res to left 
-         +!Result \ add D2 to M
-      ELSE  RLM   \ rotate Res to left
+      [ ' RL_D1 ]M!        \ rotate D1 to left
+      [ ' Carry! ]M!   \ save carry
+      [ ' RLM ]M!      \ rotate Res to left
+      [ Carry ]C@      \ fetch carry bit
+      IF +!Result \ add D2 to M
       THEN
    LOOP
    ;
